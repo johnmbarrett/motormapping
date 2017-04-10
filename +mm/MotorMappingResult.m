@@ -17,7 +17,7 @@ classdef MotorMappingResult
         end
         
         function self = set.AlignmentInfo(self,la)
-            assert(isa(la,'LaserAlignment') || (isnumeric(la) && isscalar(la) && isnan(la)),'MotorMapping:MotorMappingResult:IllegalLaserAlignment','Alignment info must be of class LaserAlignment or a scalar NaN');
+            assert(isa(la,'mm.LaserAlignment') || (isnumeric(la) && isscalar(la) && isnan(la)),'MotorMapping:MotorMappingResult:IllegalLaserAlignment','Alignment info must be of class mm.LaserAlignment or a scalar NaN');
             self.AlignmentInfo = la;
         end
     end
@@ -38,18 +38,18 @@ classdef MotorMappingResult
             load(matFile,'map','motionTubes','pathLengths','roiPositions','trajectories');
             
             assert(logical(exist('map','var')),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain a motor map\n',matFile); % TODO : generate if missing
-            assert(logical(exist('motionTubes','var')),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain any motion tubes\n',matFile);
-            assert(logical(exist('pathLengths','var')),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain any path lengths\n',matFile);
-            assert(logical(exist('roiPositions','var')),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain any ROI coordinates\n',matFile);
-            assert(logical(exist('trajectories','var')),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain any trajectories\n',matFile);
+            assert(logical(exist('motionTubes','var')),'MotorMapping:MotorMappingResult:MotionTubesNotFound','File %s does not contain any motion tubes\n',matFile);
+            assert(logical(exist('pathLengths','var')),'MotorMapping:MotorMappingResult:PathLengthsNotFound','File %s does not contain any path lengths\n',matFile);
+            assert(logical(exist('roiPositions','var')),'MotorMapping:MotorMappingResult:ROIsNotFound','File %s does not contain any ROI coordinates\n',matFile);
+            assert(logical(exist('trajectories','var')),'MotorMapping:MotorMappingResult:TrajectoriesNotFound','File %s does not contain any trajectories\n',matFile);
             
-            mmr = MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
+            mmr = mm.MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
         end
         
         function mmr = fromVideoFiles(videoFiles) % TODO : other parameters
             [map,trajectories,pathLengths,motionTubes,roiPositions] = motorTrackingMap(videoFiles);
             
-            mmr = MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
+            mmr = mm.MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
         end
     end
 end

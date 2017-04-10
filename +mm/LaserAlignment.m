@@ -39,13 +39,32 @@ classdef LaserAlignment
             end
             
             [grid,beta] = fitGridToSpots(rows,cols,imageFolder,blankImageIndex,false); % TODO : pass params?
+            
+            tf = createAlignmentTransformation(rows,cols,beta);
+            
+            la = mm.LaserAlignment(rows,cols,angle,vScale,xOffset,yOffset,grid,beta,tf); % TODO : supress figures?
+        end
     
+        function la = fromMATFile(matFile)
+            load(matFile,'grid','beta','rows','cols','tf');
+            
+            assert(logical(exist('grid','var')),'MotorMapping:LaserAlignment:GridCoordsNotFound','File %s does not contain grid co-ordinates\n',matFile);
+            assert(logical(exist('beta','var')),'MotorMapping:LaserAlignment:GridParamsNotFound','File %s does not contain grid parameters\n',matFile);
+            assert(logical(exist('rows','var')),'MotorMapping:LaserAlignment:RowsNotFound','File %s does not contain a number of rows\n',matFile);
+            assert(logical(exist('cols','var')),'MotorMapping:LaserAlignment:ColsNotFound','File %s does not contain a number of columns\n',matFile);
+            
+            if ~exist('tf','var')
+                tf = mm.LaserAlignment.createAlignmentTransformation(rows,cols,beta); % fuck's sake matlab lern2scope
+            end
+            
+            la = mm.LaserAlignment(rows,cols,NaN,NaN,NaN,NaN,grid,beta,tf); % TODO : fill in NaNs if possible
+        end
+        
+        function tf = createAlignmentTransformation(rows,cols,gridParams)
             % TODO : refactor introduce method
             movingPoints = [0 0; 0 rows+1; cols+1 0; cols+1 rows+1];
-            fixedPoints = [1 -1 cols+2; 1 rows cols+2; 1 -1 1; 1 rows 1]*beta;
+            fixedPoints = [1 -1 cols+2; 1 rows cols+2; 1 -1 1; 1 rows 1]*gridParams;
             tf = fitgeotrans(movingPoints,fixedPoints,'affine');
-            
-            la = LaserAlignment(rows,cols,angle,vScale,xOffset,yOffset,grid,beta,tf); % TODO : supress figures?
         end
     end
 end
