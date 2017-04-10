@@ -20,6 +20,8 @@ classdef MotorMappingResult
             assert(isa(la,'mm.LaserAlignment') || (isnumeric(la) && isscalar(la) && isnan(la)),'MotorMapping:MotorMappingResult:IllegalLaserAlignment','Alignment info must be of class mm.LaserAlignment or a scalar NaN');
             self.AlignmentInfo = la;
         end
+        
+        [figs,tf,warpedMaps,refs] = alignHeatmapToBrainImage(map,brainImage,gridParams)
     end
     
     methods(Access=protected)
