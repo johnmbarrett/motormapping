@@ -49,7 +49,9 @@ classdef MotorMappingResult
         end
         
         function mmr = fromVideoFiles(videoFiles) % TODO : other parameters
-            [map,trajectories,pathLengths,motionTubes,roiPositions] = motorTrackingMap(videoFiles);
+            bmm = mm.BasicMotorMapper;
+            
+            [map,trajectories,pathLengths,motionTubes,roiPositions] = bmm.mapMotion(videoFiles);
             
             mmr = mm.MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
         end
