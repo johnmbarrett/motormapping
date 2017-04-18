@@ -32,20 +32,65 @@ classdef LaserAlignment
     end
     
     methods(Static=true)
-        function la = fromLaserImages(imageFolder,blankImageIndex,rows,cols,angle,vScale,xOffset,yOffset)
-            if nargin < 5
+        function la = fromLaserImages(rows,cols,imageFolder,blankImageIndex,angle,vScale,xOffset,yOffset,varargin)
+            if nargin < 5 || ischar(angle)
                 angle = NaN;
                 vScale = NaN;
                 xOffset = NaN;
                 yOffset = NaN;
             end
             
-            if nargin < 4
-                error('MotorMapping:LaserAlignment:InsufficientParameters','Must provide laser images, blank image index, and number of rows & columns to align laser grid');
+            if ischar(angle)
+                varargin = [{angle vScale xOffset yOffset} varargin]; % TODO : this means you either specify all the laser parameters or none, might be better to detect the first character argument and assume all the ones preceding are valid paramters
             end
             
-            [grid,beta] = fitGridToSpots(rows,cols,imageFolder,blankImageIndex,false); % TODO : pass params?
+            if nargin < 2
+                error('MotorMapping:LaserAlignment:InsufficientParameters','Must provide number of rows & columns to align laser grid');
+            end
             
+            if nargin < 4 || ischar(blankImageIndex)
+                blankImageIndex = 2;
+            end
+            
+            if ischar(blankImageIndex)
+                varargin = [{blankImageIndex angle vScale xOffset yOffset} varargin]; % TODO : see above
+            end
+
+            firstImageIndex = 3-blankImageIndex;
+
+            if nargin < 3 || isempty(imageFolder) || all(isnan(imageFolder(:)))
+                imageFolder = uigetdir(pwd,'Choose image folder...');
+            end
+
+            cd(imageFolder);
+            laserImages = dir('*.bmp');
+
+            [~,si] = sort(cellfun(@(A) str2double(A{1}{1}),cellfun(@(s) regexp(s,'tt([0-9])+','tokens'),{laserImages.name},'UniformOutput',false))); % TODO : introduced method, also specify regex
+
+            laserImages = laserImages(si);
+            laserImages = laserImages(firstImageIndex:2:(2*rows*cols));
+
+            [grid,beta] = fitGridToSpots(laserImages,rows,cols,varargin{:});
+            
+            blankImage = imread(laserImages(blankImageIndex).name);
+            
+            figure; % TODO : supress figures?
+
+            imagesc(blankImage);
+            colormap(gray);
+
+            hold on;
+
+            scatter(cellfun(@mean,CX),cellfun(@mean,CY));
+            scatter(grid(:,1),grid(:,2));
+
+            [~,lastDir] = fileparts(pwd);
+
+            saveFile = [lastDir '_laser_grid']; % TODO : more control over saving
+
+            save(saveFile,'grid','beta','CX','CY','rows','cols');
+            saveas(gcf,saveFile,'fig');
+
             tf = createAlignmentTransformation(rows,cols,beta);
             
             la = mm.LaserAlignment(rows,cols,angle,vScale,xOffset,yOffset,grid,beta,tf); % TODO : supress figures?
