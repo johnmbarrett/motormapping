@@ -111,6 +111,10 @@ classdef LaserAlignment
             la = mm.LaserAlignment(rows,cols,NaN,NaN,NaN,NaN,grid,beta,tf); % TODO : fill in NaNs if possible
         end
         
+        function la = fromRowsAndCols(rows,cols)
+            la = mm.LaserAlignment(rows,cols,NaN,NaN,NaN,NaN,NaN,NaN,NaN);
+        end
+        
         function tf = createAlignmentTransformation(rows,cols,gridParams) % TODO : can a method be both static and non-static?
             movingPoints = [0 0; 0 rows+1; cols+1 0; cols+1 rows+1];
             fixedPoints = [1 -1 cols+2; 1 rows cols+2; 1 -1 1; 1 rows 1]*gridParams;
