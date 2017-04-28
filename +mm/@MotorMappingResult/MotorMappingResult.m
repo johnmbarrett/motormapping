@@ -48,6 +48,8 @@ classdef MotorMappingResult
         h = plotMotionTube(self,locationIndex,bodyPartIndex,trialIndex)
         
         hs = plotSkew(self,bregmaCoordsPx); % TODO : better name
+        
+        hs = plotTrajectories(self,l,varargin)
     end
     
     methods(Access=protected)
