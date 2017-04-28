@@ -41,6 +41,8 @@ classdef MotorMappingResult
         
         [figs,tf,warpedMaps,refs] = alignHeatmapToBrainImage(map,brainImage,gridParams)
         
+        makeTrialVideo(self,locationIndex,bodyPartIndex,trialIndex,varargin)
+        
         hs = plot(self,useRealCoords,bregmaCoordsPX)
         
         hs = plotSkew(self,bregmaCoordsPx); % TODO : better name
