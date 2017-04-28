@@ -3,10 +3,18 @@ classdef MotorMappingResult
         AlignmentInfo
     end
     
+    properties(Access=public,Dependent=true)
+        BodyParts
+    end
+    
+    properties(Access=protected)
+        BodyParts_
+    end
+    
     properties(GetAccess=public,SetAccess=protected)
-        Map
+        Map % TODO : should this be a stored property?  it can be calculated from Trajectories, also you can imagine many different maps of different movement parameters.  then again, there's an argument to be made for at least caching it for speed
         MotionTubes
-        PathLengths
+        PathLengths % TODO : again, this can be computed from Trajectories
         ROIs
         Trajectories
     end
@@ -21,7 +29,19 @@ classdef MotorMappingResult
             self.AlignmentInfo = la;
         end
         
+        function bodyParts = get.BodyParts(self)
+            bodyParts = self.BodyParts_;
+        end
+        
+        function self = set.BodyParts(self,bodyParts)
+            assert(iscellstr(bodyParts) && numel(bodyParts) == size(self.Map,2),'MotorMapping:MotorMappingResult:InvalidBodyParts','BodyParts must be a cell array of strings of length equal to the number of columns in Map');
+            
+            self.BodyParts_ = bodyParts;
+        end
+        
         [figs,tf,warpedMaps,refs] = alignHeatmapToBrainImage(map,brainImage,gridParams)
+        
+        hs = plot(self,useRealCoords,bregmaCoordsPX)
     end
     
     methods(Access=protected)
