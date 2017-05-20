@@ -20,6 +20,19 @@ classdef MotorMappingResult
     end
     
     methods
+        function self = MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories)
+            if nargin == 0
+                return
+            end
+            
+            self.Map = map;
+            self.MotionTubes = motionTubes;
+            self.PathLengths = pathLengths;
+            self.ROIs = roiPositions;
+            self.Trajectories = trajectories;
+            self.AlignmentInfo = NaN;
+        end
+        
         function la = get.AlignmentInfo(self)
             la = self.AlignmentInfo;
         end
@@ -50,17 +63,6 @@ classdef MotorMappingResult
         hs = plotSkew(self,bregmaCoordsPx); % TODO : better name
         
         hs = plotTrajectories(self,l,varargin)
-    end
-    
-    methods(Access=protected)
-        function self = MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories)
-            self.Map = map;
-            self.MotionTubes = motionTubes;
-            self.PathLengths = pathLengths;
-            self.ROIs = roiPositions;
-            self.Trajectories = trajectories;
-            self.AlignmentInfo = NaN;
-        end
     end
     
     methods(Static=true)
