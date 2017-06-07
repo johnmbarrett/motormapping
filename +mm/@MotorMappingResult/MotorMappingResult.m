@@ -120,17 +120,9 @@ classdef MotorMappingResult < handle % MATLAB you are so dumb
         hs = plotTrajectories(self,l,varargin)
     end
     
-    methods(Static=true) % TODO : should these go in the abstract superclass now?
-        function mmr = fromMATFile(matFile)
-            load(matFile,'map','motionTubes','pathLengths','roiPositions','trajectories');
-            
-            assert(logical(exist('map','var')),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain a motor map\n',matFile); % TODO : generate if missing
-            assert(logical(exist('motionTubes','var')),'MotorMapping:MotorMappingResult:MotionTubesNotFound','File %s does not contain any motion tubes\n',matFile);
-            assert(logical(exist('pathLengths','var')),'MotorMapping:MotorMappingResult:PathLengthsNotFound','File %s does not contain any path lengths\n',matFile);
-            assert(logical(exist('roiPositions','var')),'MotorMapping:MotorMappingResult:ROIsNotFound','File %s does not contain any ROI coordinates\n',matFile);
-            assert(logical(exist('trajectories','var')),'MotorMapping:MotorMappingResult:TrajectoriesNotFound','File %s does not contain any trajectories\n',matFile);
-            
-            mmr = mm.MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
+    methods(Static=true)
+        function mmr = fromMATFile(matFile) % TODO : a superclass that knows about its subclasses?  is that allowed?  maybe a factory class would be better
+            mmr = mm.MATFileMotorMappingResult(matFile);
         end
         
         function mmr = fromVideoFiles(videoFiles) % TODO : other parameters

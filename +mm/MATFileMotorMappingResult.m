@@ -49,4 +49,19 @@ classdef MATFileMotorMappingResult < mm.MotorMappingResult
             save(self.NameName,'-append','trajectories');
         end
     end
+    
+    methods
+        function self = MATFileMotorMappingResult(matFile)
+            vars = who('-file',matFile);
+            
+            assert(ismember('map',vars),'MotorMapping:MotorMappingResult:MapNotFound','File %s does not contain a motor map\n',matFile); % TODO : generate if missing
+            assert(ismember('motionTubes',vars),'MotorMapping:MotorMappingResult:MotionTubesNotFound','File %s does not contain any motion tubes\n',matFile);
+            assert(ismember('pathLengths',vars),'MotorMapping:MotorMappingResult:PathLengthsNotFound','File %s does not contain any path lengths\n',matFile);
+            assert(ismember('roiPositions',vars),'MotorMapping:MotorMappingResult:ROIsNotFound','File %s does not contain any ROI coordinates\n',matFile);
+            assert(ismember('trajectories',vars),'MotorMapping:MotorMappingResult:TrajectoriesNotFound','File %s does not contain any trajectories\n',matFile);
+            
+            self.FileName = matFile;
+            self.AlignmentInfo = NaN; % TODO : should there be a subclass of AlignmentInfo to represent this instead?
+        end
+    end
 end
