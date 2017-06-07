@@ -332,6 +332,7 @@ classdef BasicMotorMapper < mm.MotorMapper
                 imagesc(meanFirstImage);
                 colormap(gray);
                 daspect([1 1 1]);
+                title('Choose ROIs for Motor Mapping');
 
                 rois = chooseMultipleROIs(@imfreehand); % TODO : choose ROI function
                 roiPositions = zeros(numel(rois),4);

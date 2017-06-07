@@ -44,7 +44,7 @@ classdef MotorMappingExperiment
         function mme = fromNotesFile(notesFile,varargin)
             topFolder = pwd;
             
-            experimentTable = readtable(notesFile);
+            experimentTable = readtable(notesFile,'Delimiter','\t');
             
             % TODO : what if missing?
             [setups,setupIndices] = unique([experimentTable.Setup]);
@@ -85,6 +85,8 @@ classdef MotorMappingExperiment
             
             results = cell(size(experimentTable,1),1);
             
+            masks = cell(1,0);
+            
             for ii = 1:size(experimentTable,1)
                 stimFolder = sprintf('%s\\stim %d',topFolder,ii);
                 
@@ -114,7 +116,9 @@ classdef MotorMappingExperiment
                 
                 dirs = files(isDir & ~strncmpi('.',names,1));
                 
-                masks = {};
+                if numel(dirs) > numel(masks)
+                    masks(end+(1:(numel(dirs)-numel(masks)))) = {[]};
+                end
                 
                 for jj = 1:numel(dirs)
                     switch dirs(jj).name
@@ -129,42 +133,58 @@ classdef MotorMappingExperiment
                     end
                     
                     imageStackFolder = [stimFolder '\' dirs(jj).name '\'];
+                    resultFile = sprintf('%s\\%s_motion_tracking.mat',imageStackFolder,dirs(jj).name);
                     
-                    if ii == 1
-                        bmps = dir([imageStackFolder '*.bmp']);
+                    if exist(resultFile,'file')
+                        mmr = mm.MotorMappingResult.fromMATFile(resultFile);
+                    else
+                        videoFiles = dir([imageStackFolder 'VT*.mat']);
                         
-                        I = imread([imageStackFolder bmps(2).name ]);
-                        
-                        figure;
-                        
-                        imshow(I);
-                        
-                        roi = imfreehand;
-                        
-                        masks{jj} = createMask(roi); %#ok<AGROW>
-                        
-                        close(gcf);
+                        if isempty(videoFiles)
+                            if isempty(masks{jj})
+                                bmps = dir([imageStackFolder '*.bmp']);
+
+                                I = imread([imageStackFolder bmps(2).name ]);
+
+                                figure;
+
+                                imshow(I);
+                                
+                                title('Draw LED location');
+
+                                roi = imfreehand;
+
+                                masks{jj} = createMask(roi); % TODO : what if the LED moved?
+
+                                close(gcf);
+                            end
+
+                            % TODO : factory method?
+                            splitBMPsIntoTrialsAndDerandomise(imageStackFolder,masks{jj},[stimFolder '\' parameterFile.name],[stimFolder '\' locationFile.name]);
+
+                            videoFiles = dir([imageStackFolder 'VT*.mat']);
+                            
+                            videoFileNames = {videoFiles.name};
+                        else
+                            videoFileNames = arrayfun(@(s) sprintf('%s%s',imageStackFolder,s.name),videoFiles,'UniformOutput',false);
+                        end
+
+                        mmr = mm.MotorMappingResult.fromVideoFiles(videoFileNames);
                     end
                     
-                    % TODO : factory method?
-                    splitBMPsIntoTrialsAndDerandomise(imageStackFolder,masks{jj},[stimFolder '\' parameterFile.name],[stimFolder '\' locationFile.name]);
-                    
-                    videoFiles = dir([imageStackFolder 'VT*.mat']);
-                    
-                    mmr = mm.MotorMappingResult.fromVideoFiles({videoFiles.name});
                     mmr.BodyParts = bodyParts;
                     
                     results{ii}(jj,1) = mmr;
                 end
-                
-                results = vertcat(results{~cellfun(@isempty,results)});
-                
-                % TODO : constructor?
-                mme = mm.MotorMappingExperiment;
-                mme.Results = results;
-                mme.Alignments = alignments;
-                mme.ResultAlignmentMap = [experimentTable.Expt;experimentTable.Setup];
             end
+                
+            results = vertcat(results{~cellfun(@isempty,results)});
+
+            % TODO : constructor?
+            mme = mm.MotorMappingExperiment;
+            mme.Results = results;
+            mme.Alignments = alignments;
+            mme.ResultAlignmentMap = [experimentTable.Expt;experimentTable.Setup];
         end
     end
 end
