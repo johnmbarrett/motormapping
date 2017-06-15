@@ -2,6 +2,7 @@ classdef BasicMotorMapper < mm.MotorMapper
     methods
         function [trajectory,motionTube] = trackMotion(self,I,varargin) % TODO : this is an absolute behemoth of a method.  Can I break it down somehow?
             parser = inputParser; % TODO : properties?
+            parser.KeepUnmatched = true;
             parser.addParameter('MotionTubeMasks',NaN,@(x) iscell(x) && all(cellfun(@(y) isnumeric(y) & isvector(y),x)));
             parser.addParameter('ROIs',NaN,@(x) isa(x,'imroi') || (iscell(x) && all(cellfun(@(A) isequal(size(A),[1 4]),x))) || (isnumeric(x) && ismatrix(x) && size(x,2) == 4));
             parser.addParameter('Templates',NaN,@(x) iscell(x) && all(cellfun(@ismatrix,x)));
@@ -294,8 +295,9 @@ classdef BasicMotorMapper < mm.MotorMapper
             end
         end
         
-        function [map,trajectories,pathLengths,motionTubes,roiPositions] = mapMotion(self,files,varargin)
+        function [map,trajectories,pathLengths,motionTubes,roiPositions,saveFile] = mapMotion(self,files,varargin)
             parser = inputParser; % TODO : can these parameters be promoted to properties?
+            parser.KeepUnmatched = true;
             parser.addParameter('ROIs',NaN,@(x) isa(x,'imroi') || (iscell(x) && all(cellfun(@(A) isequal(size(A),[1 4]),x))) || (isnumeric(x) && ismatrix(x) && size(x,2) == 4));
             parser.addParameter('UseMeanFirstImage',false,@(x) isscalar(x) && islogical(x));
             parser.parse(varargin{:});
@@ -369,7 +371,7 @@ classdef BasicMotorMapper < mm.MotorMapper
             
             varargin = [{'ROIs' roiPositions 'Templates' templates 'UpdateTemplate' false 'VideoOutputFile' NaN 'MotionTubeMasks' masks} varargin];
             
-            [map,trajectories,pathLengths,motionTubes,roiPositions] = mapMotion@mm.MotorMapper(self,files,varargin{:});
+            [map,trajectories,pathLengths,motionTubes,roiPositions,saveFile] = mapMotion@mm.MotorMapper(self,files,varargin{:});
         end
     end
 

@@ -24,19 +24,21 @@ classdef MotorMappingExperiment
         end
         
         function self = set.Alignments(self, alignments)
-            assert(isa(results,'mm.LaserAlignment'),'MotorMapping:MotorMappingExperiment:NotAnAlignmnet','Alignments must be an array of LaserAlignments.');
+            assert(isa(alignments,'mm.LaserAlignment'),'MotorMapping:MotorMappingExperiment:NotAnAlignmnet','Alignments must be an array of LaserAlignments.');
             self.Alignments = alignments;
         end
         
         function self = set.ResultAlignmentMap(self, map)
-            assert(isequal(size(map,1),[numel(self.Results) 2]),'MotorMapping:MotorMappingExperiment:BadMapSize','ResultAlignmentMap must be a two-column array with one row for each Result.');
-            assert(isequal(sort(map(:,1)),(1:numel(self.Results))'),'MotorMapping:MotorMappingExperiment:BadMap','First column of ResultAlignmentMap must contain exactly one index for each Result.');
+            assert(isequal(size(map),[numel(self.Results) 2]),'MotorMapping:MotorMappingExperiment:BadMapSize','ResultAlignmentMap must be a two-column array with one row for each Result.');
+            assert(all(map(:,1) >= 1 & map(:,1) <= numel(self.Results)),'MotorMapping:MotorMappingExperiment:BadMap','Each entry in first column of ResultAlignmentMap must be between 1 and numel(Results)');
             assert(all(map(:,2) >= 1 & map(:,2) <= numel(self.Alignments)),'MotorMapping:MotorMappingExperiment:BadMap','Each entry in second column of ResultAlignmentMap must be between 1 and numel(Alignments)');
             
             self.ResultAlignmentMap_ = map;
             
             % TODO : test this, it probably won't work
-            self.Results(map(:,1)).AlignmentInfo = self.Alignments(map(:,2));
+            for ii = 1:numel(self.Results)
+                self.Results(map(ii,1)).AlignmentInfo = self.Alignments(map(ii,2));
+            end
         end
     end
     
@@ -84,6 +86,8 @@ classdef MotorMappingExperiment
             end
             
             results = cell(size(experimentTable,1),1);
+            exptIndex = cell(size(experimentTable,1),1);
+            setupIndex = cell(size(experimentTable,1),1);
             
             masks = cell(1,0);
             
@@ -169,22 +173,26 @@ classdef MotorMappingExperiment
                             videoFileNames = arrayfun(@(s) sprintf('%s%s',imageStackFolder,s.name),videoFiles,'UniformOutput',false);
                         end
 
-                        mmr = mm.MotorMappingResult.fromVideoFiles(videoFileNames);
+                        mmr = mm.MotorMappingResult.fromVideoFiles(videoFileNames,'SaveFilePrefix',[imageStackFolder dirs(jj).name]);
                     end
                     
                     mmr.BodyParts = bodyParts;
                     
                     results{ii}(jj,1) = mmr;
+                    exptIndex{ii}(jj,1) = experimentTable.Expt(ii);
+                    setupIndex{ii}(jj,1) = experimentTable.Setup(ii);
                 end
             end
                 
             results = vertcat(results{~cellfun(@isempty,results)});
+            exptIndex = vertcat(exptIndex{~cellfun(@isempty,exptIndex)});
+            setupIndex = vertcat(setupIndex{~cellfun(@isempty,setupIndex)});
 
             % TODO : constructor?
             mme = mm.MotorMappingExperiment;
             mme.Results = results;
             mme.Alignments = alignments;
-            mme.ResultAlignmentMap = [experimentTable.Expt;experimentTable.Setup];
+            mme.ResultAlignmentMap = [exptIndex setupIndex];
         end
     end
 end

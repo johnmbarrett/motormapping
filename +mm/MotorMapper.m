@@ -4,10 +4,11 @@ classdef MotorMapper
     end
     
     methods
-        function [map,trajectories,pathLengths,motionTubes,roiPositions] = mapMotion(self,files,varargin)
+        function [map,trajectories,pathLengths,motionTubes,roiPositions,saveFile] = mapMotion(self,files,varargin)
             parser = inputParser;
             parser.KeepUnmatched = true;
             parser.addParameter('ROIs',NaN,@(x) isa(x,'imroi') || (iscell(x) && all(cellfun(@(A) isequal(size(A),[1 4]),x))) || (isnumeric(x) && ismatrix(x) && size(x,2) == 4)); % TODO : duplicated code
+            parser.addParameter('SaveFilePrefix',NaN,@(x) ischar(x)); % TODO : control full filename?
             parser.parse(varargin{:});
 
             rois = parser.Results.ROIs;
@@ -47,9 +48,16 @@ classdef MotorMapper
                 roiPositions = rois;
             end
 
-            dirs = strsplit(pwd,{'\' '/'});
-            lastDir = dirs{end};
-            save([lastDir '_motion_tracking.mat'],'-v7.3','map','trajectories','motionTubes','roiPositions','pathLengths'); % TODO : more control over file handling
+            if ischar(parser.Results.SaveFilePrefix)
+                saveFilePrefix = parser.Results.SaveFilePrefix;
+            else
+                dirs = strsplit(pwd,{'\' '/'});
+                saveFilePrefix = dirs{end};
+            end
+            
+            saveFile = [saveFilePrefix '_motion_tracking.mat'];
+            
+            save(saveFile,'-v7.3','map','trajectories','motionTubes','roiPositions','pathLengths'); % TODO : more control over file handling
         end
     end
 end

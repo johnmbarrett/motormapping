@@ -125,12 +125,12 @@ classdef MotorMappingResult < handle % MATLAB you are so dumb
             mmr = mm.MATFileMotorMappingResult(matFile);
         end
         
-        function mmr = fromVideoFiles(videoFiles) % TODO : other parameters
+        function mmr = fromVideoFiles(videoFiles,varargin) % TODO : other parameters
             bmm = mm.BasicMotorMapper;
             
-            [map,trajectories,pathLengths,motionTubes,roiPositions] = bmm.mapMotion(videoFiles);
+            [~,~,~,~,~,saveFile] = bmm.mapMotion(videoFiles,varargin{:});
             
-            mmr = mm.MotorMappingResult(map,motionTubes,pathLengths,roiPositions,trajectories);
+            mmr = mm.MATFileMotorMappingResult(saveFile);
         end
     end
 end
