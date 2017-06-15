@@ -4,16 +4,19 @@ classdef MotorMappingExperiment
         % factory method puts them into an invalid state
         Results
         Alignments
+    end
+    
+    properties(Access=protected)
         ResultAlignmentMap_
     end
     
-    properties(Dependent = true)
+    properties(Dependent=true)
         ResultAlignmentMap
     end
     
     methods
         function map = get.ResultAlignmentMap(self)
-            map = self.ResultAlignmentMap;
+            map = self.ResultAlignmentMap_;
         end
         
         % TODO : these two setters will put ResultAlignmentMap_ into an
@@ -86,7 +89,6 @@ classdef MotorMappingExperiment
             end
             
             results = cell(size(experimentTable,1),1);
-            exptIndex = cell(size(experimentTable,1),1);
             setupIndex = cell(size(experimentTable,1),1);
             
             masks = cell(1,0);
@@ -179,20 +181,18 @@ classdef MotorMappingExperiment
                     mmr.BodyParts = bodyParts;
                     
                     results{ii}(jj,1) = mmr;
-                    exptIndex{ii}(jj,1) = experimentTable.Expt(ii);
                     setupIndex{ii}(jj,1) = experimentTable.Setup(ii);
                 end
             end
                 
             results = vertcat(results{~cellfun(@isempty,results)});
-            exptIndex = vertcat(exptIndex{~cellfun(@isempty,exptIndex)});
             setupIndex = vertcat(setupIndex{~cellfun(@isempty,setupIndex)});
 
             % TODO : constructor?
             mme = mm.MotorMappingExperiment;
             mme.Results = results;
             mme.Alignments = alignments;
-            mme.ResultAlignmentMap = [exptIndex setupIndex];
+            mme.ResultAlignmentMap = [(1:numel(results))' setupIndex];
         end
     end
 end
